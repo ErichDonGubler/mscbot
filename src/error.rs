@@ -9,10 +9,10 @@ use hyper;
 use r2d2;
 use serde_json;
 
-pub type GitHubResult<T> = std::result::Result<T, GitHubError>;
+pub type DashResult<T> = std::result::Result<T, DashError>;
 
 #[derive(Debug)]
-pub enum GitHubError {
+pub enum DashError {
     Hyper(hyper::error::Error),
     Io(io::Error),
     Serde(serde_json::error::Error),
@@ -21,32 +21,32 @@ pub enum GitHubError {
     Misc,
 }
 
-impl From<hyper::error::Error> for GitHubError {
+impl From<hyper::error::Error> for DashError {
     fn from(e: hyper::error::Error) -> Self {
-        GitHubError::Hyper(e)
+        DashError::Hyper(e)
     }
 }
 
-impl From<io::Error> for GitHubError {
+impl From<io::Error> for DashError {
     fn from(e: io::Error) -> Self {
-        GitHubError::Io(e)
+        DashError::Io(e)
     }
 }
 
-impl From<serde_json::error::Error> for GitHubError {
+impl From<serde_json::error::Error> for DashError {
     fn from(e: serde_json::error::Error) -> Self {
-        GitHubError::Serde(e)
+        DashError::Serde(e)
     }
 }
 
-impl From<r2d2::GetTimeout> for GitHubError {
+impl From<r2d2::GetTimeout> for DashError {
     fn from(e: r2d2::GetTimeout) -> Self {
-        GitHubError::R2d2Timeout(e)
+        DashError::R2d2Timeout(e)
     }
 }
 
-impl From<diesel::result::Error> for GitHubError {
+impl From<diesel::result::Error> for DashError {
     fn from(e: diesel::result::Error) -> Self {
-        GitHubError::DieselError(e)
+        DashError::DieselError(e)
     }
 }
