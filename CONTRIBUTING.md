@@ -1,8 +1,8 @@
-# rfcbot-rs
+# mscbot-rs
 
-[![Travis](https://img.shields.io/travis/rust-lang/rust.svg)](https://travis-ci.org/anp/rfcbot-rs)
+[![Travis](https://img.shields.io/travis/rust-lang/rust.svg)](https://travis-ci.org/anp/mscbot-rs)
 
-Deployed to https://rfcbot.rs right now.
+Deployed to https://mscbot.rs right now.
 
 ## ToC
 
@@ -11,24 +11,14 @@ Deployed to https://rfcbot.rs right now.
   * [Running server processes](#running-server-processes)
   * [Database Connection](#database-connection)
 * [Configuration](#configuration)
-  * [Rust Version](#rust-version)
   * [Environment variables](#environment-variables)
 * [Database](#database)
 * [Bootstrapping](#bootstrapping)
 * [Scraping](#scraping)
 * [Deployment](#deployment)
-* [Conduct](#conduct)
 * [License](#license)
 
 ## Development
-
-### Rust Version
-
-Rust nightly is required, as rfcbot uses [Rocket](rocket.rs) now. Pin `rustup` to the correct version:
-
-```
-$ rustup override set nightly-2017-08-26
-```
 
 ### Heroku CLI
 
@@ -81,7 +71,7 @@ Note that you can configure the Rocket web server using environment variables li
 
 ## Database
 
-I'm testing with PostgreSQL 9.5. To init, make sure `DATABASE_URL` is set, and:
+I'm testing with PostgreSQL 9.5. To init, make sure `DATABASE_URL` is set. BE AWARE THIS CONTAINS ENTIRELY RUST-SPECIFIC DATA ATM. and:
 
 ```
 cargo install diesel_cli
@@ -89,19 +79,9 @@ diesel migration run
 diesel print-schema > src/domain/schema.rs
 ```
 
-That should have the database you've specified ready to receive data. Then you can run some of the bootstrapping commands (see below). Alternatively, you can use `bootstrap.sql` to get a nice starting point for the database (note that this isn't maintained regularly).
-
-```bash
-psql -d $DB_NAME_HERE -f bootstrap.sql
-```
-
 ## Deployment
 
 Deployed to Heroku via TravisCI from the master branch.
-
-## Conduct
-
-This project has a [Code of Conduct and moderation policy](https://github.com/anp/rfcbot-rs/blob/master/CONDUCT.md) very similar to the Rust CoC.
 
 ## License
 

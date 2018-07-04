@@ -3,8 +3,8 @@
 use std::collections::BTreeMap;
 use std::env;
 
-pub const RFC_BOT_MENTION: &'static str = "@rfcbot";
-pub const GH_ORGS: [&'static str; 3] = ["rust-lang", "rust-lang-nursery", "rust-lang-deprecated"];
+pub const RFC_BOT_MENTION: &'static str = "@msgbot";
+pub const GH_ORGS: [&'static str; 1] = ["test-org-blabla"];
 
 lazy_static! {
     pub static ref CONFIG: Config = {

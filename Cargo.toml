@@ -1,6 +1,6 @@
 [package]
 authors = ["Adam Perry <adam.n.perry@gmail.com>"]
-name = "rfcbot-rs"
+name = "mscbot-rs"
 version = "0.1.0"
 
 [dependencies]

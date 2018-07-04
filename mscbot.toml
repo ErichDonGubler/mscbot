@@ -1,0 +1,14 @@
+[fcp_behaviors]
+
+[fcp_behaviors."anoadragon453/mscs"]
+close = true
+postpone = true
+
+[teams]
+
+[teams.T-core]
+name = "Core team"
+ping = "matrix-org/spec-core"
+members = [
+  "anoadragon453",
+]

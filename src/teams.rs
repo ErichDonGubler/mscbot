@@ -14,16 +14,16 @@ use error::*;
 //==============================================================================
 
 lazy_static! {
-    pub static ref SETUP: RfcbotConfig = read_rfcbot_cfg_validated();
+    pub static ref SETUP: MscbotConfig = read_mscbot_cfg_validated();
 }
 
 #[derive(Debug, Deserialize)]
-pub struct RfcbotConfig {
+pub struct MscbotConfig {
     fcp_behaviors: BTreeMap<String, FcpBehavior>,
     teams: BTreeMap<TeamLabel, Team>,
 }
 
-impl RfcbotConfig {
+impl MscbotConfig {
     /// Retrive an iterator over all the team labels.
     pub fn team_labels(&self) -> impl Iterator<Item = &TeamLabel> {
         self.teams.keys()
@@ -79,9 +79,9 @@ pub struct TeamLabel(pub String);
 // Implementation details
 //==============================================================================
 
-/// Read the validated `rfcbot.toml` configuration file.
-fn read_rfcbot_cfg_validated() -> RfcbotConfig {
-    let cfg = read_rfcbot_cfg();
+/// Read the validated `mscbot.toml` configuration file.
+fn read_mscbot_cfg_validated() -> MscbotConfig {
+    let cfg = read_mscbot_cfg();
 
     cfg.teams.values().for_each(|team|
         team.validate()
@@ -92,14 +92,14 @@ if you're running this for tests, make sure you've pulled github users from prod
     cfg
 }
 
-/// Read the unprocessed `rfcbot.toml` configuration file.
-fn read_rfcbot_cfg() -> RfcbotConfig {
-    read_rfcbot_cfg_from(
-        include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/rfcbot.toml")))
+/// Read the unprocessed `mscbot.toml` configuration file.
+fn read_mscbot_cfg() -> MscbotConfig {
+    read_mscbot_cfg_from(
+        include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/mscbot.toml")))
 }
 
-fn read_rfcbot_cfg_from(input: &str) -> RfcbotConfig {
-    toml::from_str(input).expect("couldn't parse rfcbot.toml!")
+fn read_mscbot_cfg_from(input: &str) -> MscbotConfig {
+    toml::from_str(input).expect("couldn't parse mscbot.toml!")
 }
 
 impl Team {
@@ -171,7 +171,7 @@ members = [
   "theflash"
 ]
 "#;
-        let cfg = read_rfcbot_cfg_from(test);
+        let cfg = read_mscbot_cfg_from(test);
 
         // Labels are correct:
         assert_eq!(cfg.team_labels().map(|tl| tl.0.clone()).collect::<Vec<_>>(),
@@ -214,7 +214,7 @@ members = [
     fn cfg_file_wellformed() {
         // Just parse it and ensure that we get no panics for now!
         // This is a crap test; but, better than nothing.
-        let _ = read_rfcbot_cfg();
+        let _ = read_mscbot_cfg();
     }
 
     #[test]

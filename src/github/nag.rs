@@ -9,7 +9,7 @@ use diesel;
 use config::RFC_BOT_MENTION;
 use DB_POOL;
 use domain::github::{GitHubUser, Issue, IssueComment};
-use domain::rfcbot::{FcpConcern, FcpProposal, FcpReviewRequest, FeedbackRequest, NewFcpProposal,
+use domain::mscbot::{FcpConcern, FcpProposal, FcpReviewRequest, FeedbackRequest, NewFcpProposal,
                      NewFcpConcern, NewFcpReviewRequest, NewFeedbackRequest};
 use domain::schema::*;
 use error::*;
@@ -87,7 +87,7 @@ pub fn update_nags(comment: &IssueComment) -> DashResult<()> {
 
     // Attempt to parse all commands out of the comment
     let mut any = false;
-    for command in RfcBotCommand::from_str_all(&comment.body) {
+    for command in MscbotCommand::from_str_all(&comment.body) {
         any = true;
 
         // Don't accept bot commands from non-subteam members.
@@ -98,7 +98,7 @@ pub fn update_nags(comment: &IssueComment) -> DashResult<()> {
             return Ok(());
         }
 
-        debug!("processing rfcbot command: {:?}", &command);
+        debug!("processing mscbot command: {:?}", &command);
         let process = command.process(&author, &issue, comment, &subteam_members);
         ok_or!(process, why => {
             error!("Unable to process command for comment id {}: {:?}",
@@ -106,7 +106,7 @@ pub fn update_nags(comment: &IssueComment) -> DashResult<()> {
             return Ok(());
         });
 
-        debug!("rfcbot command is processed");
+        debug!("mscbot command is processed");
     }
 
     if !any {
@@ -241,7 +241,7 @@ fn evaluate_nags() -> DashResult<()> {
             .count();
 
         // update existing status comment with reviews & concerns
-        let status_comment = RfcBotComment::new(&issue, CommentType::FcpProposed(
+        let status_comment = MscbotComment::new(&issue, CommentType::FcpProposed(
                     &initiator,
                     FcpDisposition::from_str(&proposal.disposition)?,
                     &reviews,
@@ -299,7 +299,7 @@ fn evaluate_nags() -> DashResult<()> {
                 };
 
                 // leave a comment for FCP start
-                let fcp_start_comment = RfcBotComment::new(&issue, comment_type);
+                let fcp_start_comment = MscbotComment::new(&issue, comment_type);
                 ok_or_continue!(fcp_start_comment.post(None), why =>
                     error!("Unable to post comment for FCP {}'s start: {:?}",
                             proposal.id, why));
@@ -364,7 +364,7 @@ fn evaluate_nags() -> DashResult<()> {
             status_comment_id: proposal.fk_bot_tracking_comment,
             disposition: disp
         };
-        let fcp_close_comment = RfcBotComment::new(&issue, comment_type);
+        let fcp_close_comment = MscbotComment::new(&issue, comment_type);
 
         // Post it!
         ok_or_continue!(fcp_close_comment.post(None), why =>
@@ -513,7 +513,7 @@ fn cancel_fcp(author: &GitHubUser, issue: &Issue, existing: &FcpProposal) -> Das
         .execute(conn)?;
 
     // leave github comment stating that FCP proposal cancelled
-    let comment = RfcBotComment::new(issue, CommentType::FcpProposalCancelled(author));
+    let comment = MscbotComment::new(issue, CommentType::FcpProposalCancelled(author));
     let _ = comment.post(None);
     &[Label::FCP,
       Label::PFCP,
@@ -526,7 +526,7 @@ fn cancel_fcp(author: &GitHubUser, issue: &Issue, existing: &FcpProposal) -> Das
 }
 
 #[derive(Debug, Eq, PartialEq)]
-pub enum RfcBotCommand<'a> {
+pub enum MscbotCommand<'a> {
     FcpPropose(FcpDisposition),
     FcpCancel,
     Reviewed,
@@ -580,10 +580,10 @@ fn parse_command_text<'a>(command: &'a str, subcommand: &'a str) -> &'a str {
 }
 
 /// Parses all subcommands under the fcp command.
-/// If `fcp_context` is set to false, `@rfcbot <subcommand>`
-/// was passed and not `@rfcbot fcp <subcommand>`.
+/// If `fcp_context` is set to false, `@mscbot <subcommand>`
+/// was passed and not `@mscbot fcp <subcommand>`.
 /// 
-/// @rfcbot accepts roughly the following grammar:
+/// @mscbot accepts roughly the following grammar:
 ///
 /// merge ::= "merge" | "merged" | "merging" | "merges" ;
 /// close ::= "close" | "closed" | "closing" | "closes" ;
@@ -607,45 +607,45 @@ fn parse_command_text<'a>(command: &'a str, subcommand: &'a str) -> &'a str {
 ///              | subcommand
 ///              ;
 ///
-/// grammar ::= "@rfcbot" ":"? invocation ;
+/// grammar ::= "@mscbot" ":"? invocation ;
 fn parse_fcp_subcommand<'a>(
     command: &'a str,
     subcommand: &'a str,
     fcp_context: bool
-) -> DashResult<RfcBotCommand<'a>> {
+) -> DashResult<MscbotCommand<'a>> {
     Ok(match subcommand {
         // Parse a FCP merge command:
         "merge" | "merged" | "merging" | "merges" =>
-            RfcBotCommand::FcpPropose(FcpDisposition::Merge),
+            MscbotCommand::FcpPropose(FcpDisposition::Merge),
 
         // Parse a FCP close command:
         "close" | "closed" | "closing" | "closes" =>
-            RfcBotCommand::FcpPropose(FcpDisposition::Close),
+            MscbotCommand::FcpPropose(FcpDisposition::Close),
 
         // Parse a FCP postpone command:
         "postpone" | "postponed" | "postponing" | "postpones" =>
-            RfcBotCommand::FcpPropose(FcpDisposition::Postpone),
+            MscbotCommand::FcpPropose(FcpDisposition::Postpone),
 
         // Parse a FCP cancel command:
         "cancel" | "canceled" | "canceling" | "cancels" =>
-            RfcBotCommand::FcpCancel,
+            MscbotCommand::FcpCancel,
 
         // Parse a FCP reviewed command:
         "reviewed" | "review" | "reviewing" | "reviews" =>
-            RfcBotCommand::Reviewed,
+            MscbotCommand::Reviewed,
 
         // Parse a FCP concern command:
         "concern" | "concerned" | "concerning" | "concerns" => {
             debug!("Parsed command as NewConcern");
             let what = parse_command_text(command, subcommand);
-            RfcBotCommand::NewConcern(what)
+            MscbotCommand::NewConcern(what)
         },
 
         // Parse a FCP resolve command:
         "resolve" | "resolved" | "resolving" | "resolves" => {
             debug!("Parsed command as ResolveConcern");
             let what = parse_command_text(command, subcommand);
-            RfcBotCommand::ResolveConcern(what)
+            MscbotCommand::ResolveConcern(what)
         },
 
         _ => {
@@ -659,7 +659,7 @@ fn parse_fcp_subcommand<'a>(
     })
 }
 
-impl<'a> RfcBotCommand<'a> {
+impl<'a> MscbotCommand<'a> {
     pub fn process(self,
                    author: &GitHubUser,
                    issue: &Issue,
@@ -680,7 +680,7 @@ impl<'a> RfcBotCommand<'a> {
         };
 
         match self {
-            RfcBotCommand::FcpPropose(disp) => {
+            MscbotCommand::FcpPropose(disp) => {
                 debug!("processing fcp proposal: {:?}", disp);
                 use domain::schema::fcp_proposal::dsl::*;
                 use domain::schema::{fcp_review_request, issuecomment};
@@ -691,7 +691,7 @@ impl<'a> RfcBotCommand<'a> {
 
                     // leave github comment stating that FCP is proposed, ping reviewers
                     let gh_comment =
-                        RfcBotComment::new(issue, CommentType::FcpProposed(author, disp, &[], &[]));
+                        MscbotComment::new(issue, CommentType::FcpProposed(author, disp, &[], &[]));
 
                     let gh_comment = gh_comment.post(None)?;
                     info!("Posted base comment to github, no reviewers listed yet");
@@ -751,7 +751,7 @@ impl<'a> RfcBotCommand<'a> {
                     // we have all of the review requests, generate a new comment and post it
 
                     let new_gh_comment =
-                        RfcBotComment::new(issue,
+                        MscbotComment::new(issue,
                             CommentType::FcpProposed(
                                 author, disp, &review_requests, &[]));
 
@@ -760,12 +760,12 @@ impl<'a> RfcBotCommand<'a> {
                     debug!("github comment updated with reviewers");
                 }
             }
-            RfcBotCommand::FcpCancel => {
+            MscbotCommand::FcpCancel => {
                 if let Some(existing) = existing_proposal {
                     cancel_fcp(author, issue, &existing)?;
                 }
             }
-            RfcBotCommand::Reviewed => {
+            MscbotCommand::Reviewed => {
                 // set a reviewed entry for the comment author on this issue
 
                 use domain::schema::fcp_review_request::dsl::*;
@@ -790,7 +790,7 @@ impl<'a> RfcBotCommand<'a> {
 
                 }
             }
-            RfcBotCommand::NewConcern(concern_name) => {
+            MscbotCommand::NewConcern(concern_name) => {
 
                 if let Some(mut proposal) = existing_proposal {
                     // check for existing concern
@@ -838,7 +838,7 @@ impl<'a> RfcBotCommand<'a> {
                     }
                 }
             }
-            RfcBotCommand::ResolveConcern(concern_name) => {
+            MscbotCommand::ResolveConcern(concern_name) => {
 
                 debug!("Command is to resolve a concern ({}).", concern_name);
 
@@ -867,7 +867,7 @@ impl<'a> RfcBotCommand<'a> {
 
                 }
             }
-            RfcBotCommand::FeedbackRequest(username) => {
+            MscbotCommand::FeedbackRequest(username) => {
 
                 use domain::schema::githubuser;
                 use domain::schema::rfc_feedback_request::dsl::*;
@@ -906,7 +906,7 @@ impl<'a> RfcBotCommand<'a> {
         Ok(())
     }
 
-    pub fn from_str_all(command: &'a str) -> impl Iterator<Item = RfcBotCommand<'a>> {
+    pub fn from_str_all(command: &'a str) -> impl Iterator<Item = MscbotCommand<'a>> {
         // Get the tokens for each command line (starts with a bot mention)
         command.lines()
                .filter(|&l| l.starts_with(RFC_BOT_MENTION))
@@ -914,7 +914,7 @@ impl<'a> RfcBotCommand<'a> {
                .filter_map(Result::ok)
     }
 
-    fn from_invocation_line(command: &'a str) -> DashResult<RfcBotCommand<'a>> {
+    fn from_invocation_line(command: &'a str) -> DashResult<MscbotCommand<'a>> {
         let mut tokens = command.trim_left_matches(RFC_BOT_MENTION)
                                 .trim_left_matches(':')
                                 .trim()
@@ -938,7 +938,7 @@ impl<'a> RfcBotCommand<'a> {
                     throw!(DashError::Misc(Some("no user specified".to_string())));
                 }
 
-                Ok(RfcBotCommand::FeedbackRequest(&user[1..]))
+                Ok(MscbotCommand::FeedbackRequest(&user[1..]))
             }
             _ => parse_fcp_subcommand(command, invocation, false),
         }
@@ -946,7 +946,7 @@ impl<'a> RfcBotCommand<'a> {
 
 }
 
-struct RfcBotComment<'a> {
+struct MscbotComment<'a> {
     issue: &'a Issue,
     body: String,
     comment_type: CommentType<'a>,
@@ -971,12 +971,12 @@ enum CommentType<'a> {
     },
 }
 
-impl<'a> RfcBotComment<'a> {
-    fn new(issue: &'a Issue, comment_type: CommentType<'a>) -> RfcBotComment<'a> {
+impl<'a> MscbotComment<'a> {
+    fn new(issue: &'a Issue, comment_type: CommentType<'a>) -> MscbotComment<'a> {
 
         let body = Self::format(issue, &comment_type);
 
-        RfcBotComment {
+        MscbotComment {
             issue: issue,
             body: body,
             comment_type: comment_type,
@@ -1043,7 +1043,7 @@ impl<'a> RfcBotComment<'a> {
                 msg.push_str("at any point in this process, please speak up!\n");
 
                 msg.push_str("\nSee [this document](");
-                msg.push_str("https://github.com/anp/rfcbot-rs/blob/master/README.md");
+                msg.push_str("https://github.com/anp/mscbot-rs/blob/master/README.md");
                 msg.push_str(") for info about what commands tagged team members can give me.");
 
                 msg
@@ -1155,21 +1155,21 @@ mod test {
     fn multiple_commands() {
 let text = r#"
 someothertext
-@rfcbot: resolved CONCERN_NAME
+@mscbot: resolved CONCERN_NAME
 somemoretext
 
 somemoretext
 
-@rfcbot: fcp cancel
+@mscbot: fcp cancel
 foobar
-@rfcbot concern foobar
+@mscbot concern foobar
 "#;
 
-        let cmd = RfcBotCommand::from_str_all(text).collect::<Vec<_>>();
+        let cmd = MscbotCommand::from_str_all(text).collect::<Vec<_>>();
         assert_eq!(cmd, vec![
-            RfcBotCommand::ResolveConcern("CONCERN_NAME"),
-            RfcBotCommand::FcpCancel,
-            RfcBotCommand::NewConcern("foobar"),
+            MscbotCommand::ResolveConcern("CONCERN_NAME"),
+            MscbotCommand::FcpCancel,
+            MscbotCommand::NewConcern("foobar"),
         ]);
     }
 
@@ -1204,14 +1204,14 @@ somemoretext")
                 let expected = $expected;
 
                 $({
-                    let body = concat!("@rfcbot: ", $cmd);
-                    let body_no_colon = concat!("@rfcbot ", $cmd);
+                    let body = concat!("@mscbot: ", $cmd);
+                    let body_no_colon = concat!("@mscbot ", $cmd);
 
                     let with_colon =
-                        ensure_take_singleton(RfcBotCommand::from_str_all(body));
+                        ensure_take_singleton(MscbotCommand::from_str_all(body));
 
                     let without_colon =
-                        ensure_take_singleton(RfcBotCommand::from_str_all(body_no_colon));
+                        ensure_take_singleton(MscbotCommand::from_str_all(body_no_colon));
 
                     assert_eq!(with_colon, without_colon);
                     assert_eq!(with_colon, expected);
@@ -1224,72 +1224,72 @@ somemoretext")
         ["reviewed", "review", "reviewing", "reviews",
          "fcp reviewed", "fcp review", "fcp reviewing",
          "pr reviewed", "pr review", "pr reviewing"],
-        RfcBotCommand::Reviewed);
+        MscbotCommand::Reviewed);
 
     test_from_str!(success_fcp_merge,
         ["merge", "merged", "merging", "merges",
          "fcp merge", "fcp merged", "fcp merging", "fcp merges",
          "pr merge", "pr merged", "pr merging", "pr merges"],
         justification!(),
-        RfcBotCommand::FcpPropose(FcpDisposition::Merge));
+        MscbotCommand::FcpPropose(FcpDisposition::Merge));
 
     test_from_str!(success_fcp_close,
         ["close", "closed", "closing", "closes",
          "fcp close", "fcp closed", "fcp closing", "fcp closes",
          "pr close", "pr closed", "pr closing", "pr closes"],
         justification!(),
-        RfcBotCommand::FcpPropose(FcpDisposition::Close));
+        MscbotCommand::FcpPropose(FcpDisposition::Close));
 
     test_from_str!(success_fcp_postpone,
         ["postpone", "postponed", "postponing", "postpones",
          "fcp postpone", "fcp postponed", "fcp postponing", "fcp postpones",
          "pr postpone", "pr postponed", "pr postponing", "pr postpones"],
         justification!(),
-        RfcBotCommand::FcpPropose(FcpDisposition::Postpone));
+        MscbotCommand::FcpPropose(FcpDisposition::Postpone));
 
     test_from_str!(success_fcp_cancel,
         ["cancel", "canceled", "canceling", "cancels",
          "fcp cancel", "fcp canceled", "fcp canceling", "fcp cancels",
          "pr cancel", "pr canceled", "pr canceling", "pr cancels"],
         justification!(),
-        RfcBotCommand::FcpCancel);
+        MscbotCommand::FcpCancel);
 
     test_from_str!(success_concern,
         ["concern", "concerned", "concerning", "concerns",
          "fcp concern", "fcp concerned", "fcp concerning", "fcp concerns",
          "pr concern", "pr concerned", "pr concerning", "pr concerns"],
         some_text!("CONCERN_NAME"),
-        RfcBotCommand::NewConcern("CONCERN_NAME"));
+        MscbotCommand::NewConcern("CONCERN_NAME"));
 
     test_from_str!(success_resolve,
         ["resolve", "resolved", "resolving", "resolves",
          "fcp resolve", "fcp resolved", "fcp resolving", "fcp resolves",
          "pr resolve", "pr resolved", "pr resolving", "pr resolves"],
         some_text!("CONCERN_NAME"),
-        RfcBotCommand::ResolveConcern("CONCERN_NAME"));
+        MscbotCommand::ResolveConcern("CONCERN_NAME"));
 
     #[test]
     fn success_resolve_mid_body() {
         let body = "someothertext
-@rfcbot: resolved CONCERN_NAME
+@mscbot: resolved CONCERN_NAME
 somemoretext
 
 somemoretext";
         let body_no_colon = "someothertext
 somemoretext
 
-@rfcbot resolved CONCERN_NAME
+@mscbot resolved CONCERN_NAME
 
 somemoretext";
 
-        let with_colon = ensure_take_singleton(RfcBotCommand::from_str_all(body));
+        let with_colon = ensure_take_singleton(MscbotCommand::from_str_all(body));
         let without_colon =
-            ensure_take_singleton(RfcBotCommand::from_str_all(body_no_colon));
+            ensure_take_singleton(MscbotCommand::from_str_all(body_no_colon));
 
         assert_eq!(with_colon, without_colon);
-        assert_eq!(with_colon, RfcBotCommand::ResolveConcern("CONCERN_NAME"));
+        assert_eq!(with_colon, MscbotCommand::ResolveConcern("CONCERN_NAME"));
     }
 
     test_from_str!(success_feedback, ["f?"], some_text!("@bob"),
-        RfcBotCommand::FeedbackRequest("bob"));
+        MscbotCommand::FeedbackRequest("bob"));
 }

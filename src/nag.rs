@@ -2,7 +2,7 @@ use diesel::prelude::*;
 
 use DB_POOL;
 use domain::github::{GitHubUser, Issue, IssueComment};
-use domain::rfcbot::{FcpProposal, FcpReviewRequest};
+use domain::mscbot::{FcpProposal, FcpReviewRequest};
 use error::DashResult;
 
 #[derive(Serialize)]

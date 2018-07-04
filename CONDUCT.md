@@ -2,7 +2,7 @@
 
 ## Conduct
 
-**Contact**: [adam.n.perry@gmail.com](adam.n.perry+rfcbot@gmail.com)
+**Contact**: [adam.n.perry@gmail.com](adam.n.perry+mscbot@gmail.com)
 
 * We are committed to providing a friendly, safe and welcoming environment for all, regardless of level of experience, gender identity and expression, sexual orientation, disability, personal appearance, body size, race, ethnicity, age, religion, nationality, or other similar characteristic.
 * On IRC, please avoid using overtly sexual nicknames or other nicknames that might detract from a friendly, safe and welcoming environment for all.
@@ -15,7 +15,7 @@
 
 ## Moderation
 
-These are the policies for upholding our community's standards of conduct. If you feel that a thread needs moderation, please contact the [primary maintainer of this project](mailto:adam.n.perry+rfcbot@gmail.com).
+These are the policies for upholding our community's standards of conduct. If you feel that a thread needs moderation, please contact the [primary maintainer of this project](mailto:adam.n.perry+mscbot@gmail.com).
 
 1. Remarks that violate the Rust standards of conduct, including hateful, hurtful, oppressive, or exclusionary remarks, are not allowed. (Cursing is allowed, but never targeting another user, and never in a hateful manner.)
 2. Remarks that moderators find inappropriate, whether listed in the code of conduct or not, are also not allowed.
