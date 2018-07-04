@@ -1,10 +1,12 @@
 # mscbot
 
-[mscbot](https://github.com/mscbot) manages asynchronous decision making on Rust issues and PRs. Status of Final Comment Periods can be viewed on [the relevant dashboard page](http://mscbot.rs).
+[mscbot](https://github.com/mscbot) manages asynchronous decision making on Rust issues and PRs. It has been adapted from rust-lang/anp's excellent [rfcbot](https://github.com/anp/rfcbot-rs).
 
-It listens for commands on all repositories owned by the [rust-lang](https://github.com/rust-lang), [rust-lang-nursery](https://github.com/rust-lang-nursery), and [rust-lang-deprecated](https://github.com/rust-lang-deprecated) organizations.
+It listens for commands on all repositories owned by the [matrix-org](https://github.com/rust-lang) organization.
 
-While its intended usage is for RFCs, you can use its tracking on any issue or pull request which needs an async review/decision cycle.
+While its intended usage is for MSCs, you can use its tracking on any issue or pull request which needs an async review/decision cycle.
+
+Please refer to [QUICKSTART.md](QUICKSTART.MD) for setting up on your own infastructure.
 
 ## Usage
 
@@ -85,7 +87,7 @@ Explain the concern...
 
 ### Final Comment Period
 
-Before proposing a final comment period on an issue/PR/RFC, please double check to make sure that the correct team label(s) has been applied to the issue. As of 04/07/2018, mscbot recognizes these labels:
+Before proposing a final comment period on an issue/PR/MSC, please double check to make sure that the correct team label(s) has been applied to the issue. As of 04/07/2018, mscbot recognizes these labels:
 
 * Core: `T-core`
 
@@ -119,6 +121,6 @@ To request feedback from a user not on the tagged team(s), use `@mscbot f? @user
 
 In a future update, the UI for the dashboard will be updated to display these feedback requests, but they don't show up anywhere right now.
 
-## Contributing, Code of Conduct, License
+## Contributing, License
 
 Please see CONTRIBUTING.md.
