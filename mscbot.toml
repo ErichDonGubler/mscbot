@@ -1,6 +1,6 @@
 [fcp_behaviors]
 
-[fcp_behaviors."anoadragon453/mscs"]
+[fcp_behaviors."test-org-blabla/agreatrepo"]
 close = true
 postpone = true
 
@@ -8,7 +8,7 @@ postpone = true
 
 [teams.T-core]
 name = "Core team"
-ping = "matrix-org/spec-core"
+ping = "test-org-blabla/spec-core"
 members = [
   "anoadragon453",
 ]

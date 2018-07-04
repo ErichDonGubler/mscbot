@@ -3,7 +3,7 @@
 use std::collections::BTreeMap;
 use std::env;
 
-pub const RFC_BOT_MENTION: &'static str = "@msgbot";
+pub const MSC_BOT_MENTION: &'static str = "@mscbot";
 pub const GH_ORGS: [&'static str; 1] = ["test-org-blabla"];
 
 lazy_static! {

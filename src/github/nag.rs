@@ -6,7 +6,7 @@ use chrono::{Duration, Utc};
 use diesel::prelude::*;
 use diesel;
 
-use config::RFC_BOT_MENTION;
+use config::MSC_BOT_MENTION;
 use DB_POOL;
 use domain::github::{GitHubUser, Issue, IssueComment};
 use domain::mscbot::{FcpConcern, FcpProposal, FcpReviewRequest, FeedbackRequest, NewFcpProposal,
@@ -909,13 +909,13 @@ impl<'a> MscbotCommand<'a> {
     pub fn from_str_all(command: &'a str) -> impl Iterator<Item = MscbotCommand<'a>> {
         // Get the tokens for each command line (starts with a bot mention)
         command.lines()
-               .filter(|&l| l.starts_with(RFC_BOT_MENTION))
+               .filter(|&l| l.starts_with(MSC_BOT_MENTION))
                .map(Self::from_invocation_line)
                .filter_map(Result::ok)
     }
 
     fn from_invocation_line(command: &'a str) -> DashResult<MscbotCommand<'a>> {
-        let mut tokens = command.trim_left_matches(RFC_BOT_MENTION)
+        let mut tokens = command.trim_left_matches(MSC_BOT_MENTION)
                                 .trim_left_matches(':')
                                 .trim()
                                 .split_whitespace();
