@@ -1,8 +1,6 @@
-# mscbot-rs
+# mscbot
 
-[![Travis](https://img.shields.io/travis/rust-lang/rust.svg)](https://travis-ci.org/anp/mscbot-rs)
-
-Deployed to https://mscbot.rs right now.
+[![Travis](https://img.shields.io/travis/anoadragon453/mscbot.svg)](https://travis-ci.org/anoadragon453/mscbot)
 
 ## ToC
 
@@ -27,10 +25,6 @@ https://devcenter.heroku.com/articles/heroku-cli
 ### Environment variables
 
 See config.rs for the environment variables expected. Also, rocket env vars are supported.
-
-### Database dumps
-
-It can be useful to have a database with some existing data to start from. "Bootstrap" files are available at https://www.dropbox.com/sh/dl4pxj1d49ici1f/AAAzZQxWVqQzVk_zOksn0Rbya?dl=0. They usually are behind several migrations, so you'll still need to run the migrations if you start from one.
 
 ### Running server processes
 
@@ -71,12 +65,11 @@ Note that you can configure the Rocket web server using environment variables li
 
 ## Database
 
-I'm testing with PostgreSQL 9.5. To init, make sure `DATABASE_URL` is set. BE AWARE THIS CONTAINS ENTIRELY RUST-SPECIFIC DATA ATM. and:
+PostgreSQL 9.5+ is recommended. To init, make sure `DATABASE_URL` is set.
 
 ```
 cargo install diesel_cli
 diesel migration run
-diesel print-schema > src/domain/schema.rs
 ```
 
 ## Deployment
