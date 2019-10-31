@@ -6,7 +6,7 @@ It listens for commands on all repositories owned by the [matrix-org](https://gi
 
 While its intended usage is for MSCs, you can use its tracking on any issue or pull request which needs an async review/decision cycle.
 
-Please refer to [QUICKSTART.md](QUICKSTART.MD) for setting up on your own infastructure.
+Please refer to [QUICKSTART.md](QUICKSTART.md) for setting up on your own infastructure.
 
 ## Usage
 
